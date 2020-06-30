@@ -6,15 +6,20 @@ type B<T> = { [key in keyof T]: key };
 
 export const NO_ERROR_TYPES = -1;
 
-const LOADING_SUFFIX = '_LOADING';
-const SUCCESS_SUFFIX = '_SUCCESS';
-const ERROR_SUFFIX = '_ERROR';
+export const LOADING_SUFFIX = '_LOADING';
+export const SUCCESS_SUFFIX = '_SUCCESS';
+export const ERROR_SUFFIX = '_ERROR';
 
 declare let Proxy: any;
 
 /** 创建 Types */
-export function composeTypes<T1, T2>(config: { prefix: string; BasicTypes: T1; FetchTypes: T2 }): B<T1> & F<T2> {
+export function composeTypes<T1, T2>(config: { prefix: string; BasicTypes?: T1; FetchTypes?: T2 }): B<T1> & F<T2> {
   const { prefix, BasicTypes: actionTypes = {}, FetchTypes: fetchActionTypes = {} } = config;
+
+  let namespace = prefix;
+  if (!prefix.endsWith("/")) {
+    namespace = `${namespace}/`
+  }
 
   const types = { ...(actionTypes as any), ...(fetchActionTypes as any) };
   const target = types;
@@ -26,7 +31,7 @@ export function composeTypes<T1, T2>(config: { prefix: string; BasicTypes: T1; F
       let result = [] as any;
 
       if (fetchActionTypes[property] === NO_ERROR_TYPES) {
-        result = [prefix + property + LOADING_SUFFIX, prefix + property + SUCCESS_SUFFIX, null];
+        result = [namespace + property + LOADING_SUFFIX, namespace + property + SUCCESS_SUFFIX, null];
         result.loading = result[0];
         result.success = result[1];
 
@@ -35,9 +40,9 @@ export function composeTypes<T1, T2>(config: { prefix: string; BasicTypes: T1; F
       }
 
       result = [
-        prefix + property + LOADING_SUFFIX,
-        prefix + property + SUCCESS_SUFFIX,
-        prefix + property + ERROR_SUFFIX
+        namespace + property + LOADING_SUFFIX,
+        namespace + property + SUCCESS_SUFFIX,
+        namespace + property + ERROR_SUFFIX
       ];
 
       result.loading = result[0];
@@ -48,7 +53,7 @@ export function composeTypes<T1, T2>(config: { prefix: string; BasicTypes: T1; F
       return;
     }
 
-    res[property] = prefix + property;
+    res[property] = namespace + property;
   });
 
   return res;
